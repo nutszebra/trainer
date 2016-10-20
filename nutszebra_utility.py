@@ -9,14 +9,12 @@ from tqdm import tqdm
 import threading
 import multiprocessing
 import subprocess
-import numpy as np
 import itertools
 import six.moves.cPickle as pickle
 import collections
 from operator import itemgetter
 from os.path import expanduser
 from six.moves.urllib_parse import urlparse
-import nutszebra_basic_bisect
 
 
 class Command(object):
@@ -36,142 +34,6 @@ class Command(object):
             self.process.terminate()
             thread.join()
         return self.process.returncode
-
-
-class Histogram(object):
-
-    @staticmethod
-    def quantize(img, bit=8):
-        img = img.copy()
-        border = 256 // bit
-        start = six.moves.range(0, 256, border)
-        for bit_value, i in enumerate(start):
-            floor = i
-            ceil = i + border
-            indices = np.where((floor <= img) * (img <= ceil))
-            img[indices] = bit_value
-        return img
-
-    @staticmethod
-    def histogram(img, bit=8):
-        hist = np.zeros((bit, bit, bit), dtype=np.int).tolist()
-        height, width, channel = img.shape
-        img = img.reshape((height * width, channel)).tolist()
-        for row in img:
-            r, g, b = row
-            hist[r][g][b] += 1
-        return Utility.flat_two_dimensional_list(Utility.flat_two_dimensional_list(hist))
-
-
-class UnionFind(object):
-
-    """UnifonFind class
-
-    Note:
-        http://www.geocities.jp/m_hiroi/light/pyalgo61.html
-
-    Attributes:
-        table (list): table for group
-    """
-
-    def __init__(self, size):
-        # negative value means the number of group
-        # positive number is the index of its parent
-        self.table = [-1 for _ in six.moves.range(size)]
-
-    # find the root of the group
-    def find(self, x):
-        if self.table[x] < 0:
-            return x
-        else:
-            # compress the pathway
-            self.table[x] = self.find(self.table[x])
-            return self.table[x]
-
-    # merge group
-    def union(self, x, y):
-        s1 = self.find(x)
-        s2 = self.find(y)
-        if s1 != s2:
-            if self.table[s1] <= self.table[s2]:
-                # smaller number means that the group has more children
-                self.table[s1] += self.table[s2]
-                self.table[s2] = s1
-            else:
-                self.table[s2] += self.table[s1]
-                self.table[s1] = s2
-            return True
-        return False
-
-    # give representive of groups and the number of elements in each group
-    def subset(self):
-        a = []
-        for i in six.moves.range(len(self.table)):
-            if self.table[i] < 0:
-                a.append((i, -self.table[i]))
-        return a
-
-    def relationship(self):
-        groups = self.subset()
-        answer = [[] for _ in six.moves.range(len(groups))]
-        for i, group in enumerate(groups):
-            representive, _ = group
-            indices = np.where(np.array(self.table) == representive)[0].tolist()
-            indices.append(representive)
-            answer[i] = indices
-        return answer
-
-    def same(self, x, y):
-        return self.find(x) == self.find(y)
-
-
-class Lcs(object):
-
-    @staticmethod
-    def lcs(a, b):
-        dp = [[0] * (len(b) + 1) for _ in six.moves.range(len(a) + 1)]
-        word = [[''] * (len(b) + 1) for _ in six.moves.range(len(a) + 1)]
-        element_a = six.moves.range(len(a))
-        element_b = six.moves.range(len(b))
-        for i, ii in itertools.product(element_a, element_b):
-            if a[i] == b[ii]:
-                dp[i + 1][ii + 1] = dp[i][ii] + 1
-                word[i + 1][ii + 1] = word[i][ii] + a[i]
-            else:
-                if dp[i][ii + 1] <= dp[i + 1][ii]:
-                    dp[i + 1][ii + 1] = dp[i + 1][ii]
-                    word[i + 1][ii + 1] = word[i + 1][ii]
-                else:
-                    dp[i + 1][ii + 1] = dp[i][ii + 1]
-                    word[i + 1][ii + 1] = word[i][ii + 1]
-        return (dp, word)
-
-
-class Lis(object):
-
-    @staticmethod
-    def lis(array):
-        length = len(array)
-        dp = [float('inf')] * length
-        answer = [[] for _ in six.moves.range(length)]
-        for i in six.moves.range(length):
-            dp[i] = 1
-            answer[i].append(array[i])
-            for ii in six.moves.range(0, i):
-                if array[ii] <= array[i]:
-                    if dp[i] <= dp[ii] + 1:
-                        dp[i] = dp[ii] + 1
-                        answer[i] = answer[ii] + [array[i]]
-        return (dp, answer)
-
-    @staticmethod
-    def lis_bisect(array):
-        length = len(array)
-        dp = [float('inf')] * length
-        for i in six.moves.range(length):
-            index = nutszebra_basic_bisect.Bisect.find(dp, array[i], side='R')
-            dp[index] = array[i]
-        return len(dp) - nutszebra_basic_bisect.Bisect.howmany(dp, float('inf'))
 
 
 class Utility(object):
@@ -200,7 +62,7 @@ class Utility(object):
     reg_pickle = [r'.*\.pkl$', r'.*\.pickle$', r'.*\.PKL$', r'.*\.Pickle$']
     reg_json = [r'.*\.json$', r'.*\.Json$', r'.*\.JSON$']
     home = expanduser("~")
-    nutszebra_path = home + '/git/nutszebra_research/python/utility/src'
+    nutszebra_path = './'
     inf = float('inf')
 
     def __init__(self):
