@@ -77,15 +77,15 @@ class Log2(object):
 
     def train_loss(self, recent=5, max_flag=False, min_flag=False, prefix='loss'):
         parameter = self.search('train_parameter')[0]['parameter']
-        return 'loss ' + Log2.show(Log2.divide(self.search('train_loss'), up='loss', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
+        return 'train loss ' + Log2.show(Log2.divide(self.search('train_loss'), up='loss', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
 
     def test_loss(self, recent=5, max_flag=False, min_flag=False, prefix='loss'):
         parameter = self.search('test_parameter')[0]['parameter']
-        return 'loss ' + Log2.show(Log2.divide(self.search('test_loss'), up='loss', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
+        return 'test loss ' + Log2.show(Log2.divide(self.search('test_loss'), up='loss', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
 
     def test_accuracy(self, recent=5, max_flag=False, min_flag=False, prefix='accuracy'):
         parameter = self.search('test_parameter')[0]['parameter']
-        return 'accuracy ' + Log2.show(Log2.divide(self.search('test_accuracy'), up='accuracy', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
+        return 'total accuracy ' + Log2.show(Log2.divide(self.search('test_accuracy'), up='accuracy', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
 
     def test_each_accuracy(self, recent=5, max_flag=False, min_flag=False, prefix='accuracy'):
         answer = []
