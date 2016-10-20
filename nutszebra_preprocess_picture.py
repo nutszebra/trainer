@@ -4,7 +4,6 @@ import numpy as np
 import six
 import nutszebra_preprocess
 from scipy.misc import imresize
-from nutszebra_selectivesearch import selective_search
 from PIL import Image
 
 
@@ -275,11 +274,6 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         overlapped_area = (np.max([0.0, x_end - x_start])) * (np.max([0.0, y_end - y_start]))
         iou = overlapped_area / (kp1_area + kp2_area - overlapped_area)
         return iou
-
-    @staticmethod
-    def selective_search(img, scale=500, sigma=0.9, min_size=10):
-        img_lbl, regions = selective_search(img, scale=500, sigma=0.9, min_size=10)
-        return img_lbl, regions
 
     @staticmethod
     def cv2_interpolation(num):
