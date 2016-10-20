@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 from chainer import serializers
 import nutszebra_log2
-import nutszebra_slack
+# import nutszebra_slack
 import nutszebra_utility
 import nutszebra_log_model
 import nutszebra_sampling
@@ -15,7 +15,7 @@ import nutszebra_basic_print
 sampling = nutszebra_sampling.Sampling()
 preprocess = nutszebra_preprocess_picture.PreprocessPicture()
 da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
-slack = nutszebra_slack.Slack()
+# slack = nutszebra_slack.Slack()
 utility = nutszebra_utility.Utility()
 
 
@@ -114,7 +114,7 @@ class TrainCifar10(object):
             log_model.save_stat()
             log_model.save_grad()
         log({'loss': float(sum_loss)}, 'train_loss')
-        slack.post(log.train_loss())
+        # slack.post(log.train_loss())
         print(log.train_loss())
 
     def test_one_epoch(self):
@@ -173,7 +173,7 @@ class TrainCifar10(object):
                 log({'accuracy': int(value)}, 'test_accuracy_{}_{}'.format(key[0], key[1]))
         # show logs
         sen = [log.test_loss(), log.test_accuracy(max_flag=True), log.test_each_accuracy(max_flag=True)]
-        slack.post('\n'.join(sen))
+        # slack.post('\n'.join(sen))
         print('\n'.join(sen))
 
     def run(self):
