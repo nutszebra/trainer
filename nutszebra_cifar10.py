@@ -9,24 +9,24 @@ import nutszebra_log_model
 import nutszebra_sampling
 import nutszebra_download_cifar10
 import nutszebra_preprocess_picture
-import nutszebra_data_augmentation_picture
 import nutszebra_basic_print
+import nutszebra_data_augmentation
 
 sampling = nutszebra_sampling.Sampling()
 preprocess = nutszebra_preprocess_picture.PreprocessPicture()
-da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
 # slack = nutszebra_slack.Slack()
 utility = nutszebra_utility.Utility()
 
 
 class TrainCifar10(object):
 
-    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, save_path='./', epoch=300, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4):
+    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, da=nutszebra_data_augmentation.DataAugmentationCifar10NormalizeSmall, save_path='./', epoch=300, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4):
         self.model = model
         self.optimizer = optimizer
         self.load_model = load_model
         self.load_optimizer = load_optimizer
         self.load_log = load_log
+        self.da = da
         self.save_path = save_path
         self.epoch = epoch
         self.batch = batch
@@ -101,8 +101,8 @@ class TrainCifar10(object):
                 data_length = len(x)
                 tmp_x = []
                 for img in x:
-                    da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(28, 36)).crop_picture_randomly(1.0, sizes=(26, 26)).normalize_picture(1.0).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
-                    tmp_x.append(da.x)
+                    img, info = self.da.train(img)
+                    tmp_x.append(img)
                 x = model.prepare_input(tmp_x, dtype=np.float32, volatile=False)
                 y = model(x, train=True)
                 t = model.prepare_input(t, dtype=np.int32, volatile=False)
@@ -146,8 +146,8 @@ class TrainCifar10(object):
             data_length = len(x)
             tmp_x = []
             for img in x:
-                da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(32, 32), interpolation='bilinear').normalize_picture(1.0).convert_to_chainer_format(1.0)
-                tmp_x.append(da.x)
+                img, info = self.da.test(img)
+                tmp_x.append(img)
             x = model.prepare_input(tmp_x, dtype=np.float32, volatile=True)
             y = model(x, train=False)
             t = model.prepare_input(t, dtype=np.int32, volatile=True)
