@@ -110,6 +110,9 @@ class TrainCifar10(object):
                 loss.backward()
                 loss.to_cpu()
                 sum_loss += loss.data * data_length
+                del loss
+                del x
+                del t
             optimizer.update()
             log_model.save_stat()
             log_model.save_grad()
@@ -156,6 +159,9 @@ class TrainCifar10(object):
             for key in tmp_false_accuracy:
                 false_accuracy[key] += tmp_false_accuracy[key]
             model.save_computational_graph(loss, path=save_path)
+            del loss
+            del x
+            del t
         # sum_loss
         log({'loss': float(sum_loss)}, 'test_loss')
         # sum_accuracy
