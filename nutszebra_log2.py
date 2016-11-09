@@ -69,10 +69,10 @@ class Log2(object):
             count += 1
         if max_flag is True:
             ind, max_val = Log2.max(array)
-            answer.append('|max {}: {}'.format(ind, round(max_val, 5)))
+            answer.append('|max {}: {}'.format(ind + 1, round(max_val, 5)))
         if min_flag is True:
             ind, min_val = Log2.min(array)
-            answer.append('|min {}: {}'.format(ind, round(min_val, 5)))
+            answer.append('|min {}: {}'.format(ind + 1, round(min_val, 5)))
         return ''.join(answer)
 
     def train_loss(self, recent=5, max_flag=False, min_flag=False, prefix='loss'):
