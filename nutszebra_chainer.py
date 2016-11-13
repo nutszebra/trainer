@@ -301,7 +301,7 @@ class Model(chainer.Chain):
         elif dim == 4:
             # conv layer
             channel_out, channel_in, y_k, x_k = Model.get_conv_shape(link)
-        n_i, n_i_next = Model.select_way(way, channel_in, channel_out)
+        n_i, n_i_next = Model.select_way(way, channel_in * y_k * x_k, channel_out * y_k * x_k)
         # calculate variance
         variance = initializer.variance_relu(n_i, n_i_next, a=relu_a)
         # orthogonal matrix
