@@ -305,7 +305,9 @@ class Model(chainer.Chain):
         # calculate variance
         variance = initializer.variance_relu(n_i, n_i_next, a=relu_a)
         # orthogonal matrix
-        w = initializer.orthonorm(mean, variance, (channel_out, channel_in * y_k * x_k), initializer.gauss, np.float32)
+        w = []
+        for i in six.moves.range(channel_out):
+            w.append(initializer.orthonorm(mean, variance, (channel_in, y_k * x_k), initializer.gauss, np.float32))
         return np.reshape(w, link.W.data.shape)
 
     @staticmethod
