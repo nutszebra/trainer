@@ -58,12 +58,12 @@ class DataAugmentationCifar10NormalizeHuge(object):
 
     @staticmethod
     def train(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(299, 303)).crop_picture_randomly(1.0, sizes=(299, 299)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(299, 512)).crop_picture_randomly(1.0, sizes=(299, 299)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
     def test(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(299, 299), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(406, 406), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
         return da.x, da.info
 
 
@@ -123,12 +123,12 @@ class DataAugmentationNormalizeHuge(object):
 
     @staticmethod
     def train(img):
-        da.load_picture(img).resize_image_randomly(1.0, size_range=(299, 303)).crop_picture_randomly(1.0, sizes=(299, 299)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da.load_picture(img).resize_image_randomly(1.0, size_range=(299, 512)).crop_picture_randomly(1.0, sizes=(299, 299)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
     def test(img):
-        da.load_picture(img).resize_image_randomly(1.0, size_range=(299, 299), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
+        da.load_picture(img).resize_image_randomly(1.0, size_range=(406, 406), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
         return da.x, da.info
 
 
