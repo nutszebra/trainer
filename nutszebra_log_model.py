@@ -237,10 +237,10 @@ class LogModel(object):
             info['mean'] = 0
             info['var'] = 0
         else:
-            info['max'] = LogModel.calculate_max(data, xp)
-            info['min'] = LogModel.calculate_min(data, xp)
-            info['mean'] = LogModel.calculate_mean(data, xp)
-            info['var'] = LogModel.calculate_var(data, xp)
+            info['max'] = float(LogModel.calculate_max(data, xp))
+            info['min'] = float(LogModel.calculate_min(data, xp))
+            info['mean'] = float(LogModel.calculate_mean(data, xp))
+            info['var'] = float(LogModel.calculate_var(data, xp))
         return info
 
     @staticmethod
