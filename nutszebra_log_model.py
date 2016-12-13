@@ -16,7 +16,7 @@ def transfer_to_cpu(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         value = func(*args, **kwargs)
-        if type(value) is not np.ndarray:
+        if type(value) is not np.ndarray or type(value) is not type(np.float32):
             value = float(_transfer_to_cpu(value))
         return value
     return wrapper
