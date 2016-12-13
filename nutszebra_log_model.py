@@ -217,10 +217,16 @@ class LogModel(object):
     @staticmethod
     def _calculate_all(data, xp=np):
         info = {}
-        info['max'] = LogModel.calculate_max(data, xp)
-        info['min'] = LogModel.calculate_min(data, xp)
-        info['mean'] = LogModel.calculate_mean(data, xp)
-        info['var'] = LogModel.calculate_var(data, xp)
+        if data is None:
+            info['max'] = 0
+            info['min'] = 0
+            info['mean'] = 0
+            info['var'] = 0
+        else:
+            info['max'] = LogModel.calculate_max(data, xp)
+            info['min'] = LogModel.calculate_min(data, xp)
+            info['mean'] = LogModel.calculate_mean(data, xp)
+            info['var'] = LogModel.calculate_var(data, xp)
         return info
 
     @staticmethod
