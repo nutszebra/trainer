@@ -12,11 +12,25 @@ def _transfer_to_cpu(value):
     return cuda.to_cpu(value)
 
 
+def _int(value):
+    t = type(value)
+    ints = [np.int, np.int32, np.int64, np.int8, np.float16, int]
+
+    return bool(np.sum([t is f for f in ints]))
+
+
+def _float(value):
+    t = type(value)
+    floats = [np.float, np.float32, np.float64, np.float128, np.float16, float]
+
+    return bool(np.sum([t is f for f in floats]))
+
+
 def transfer_to_cpu(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         value = func(*args, **kwargs)
-        if type(value) is not np.ndarray and type(value) is not type(np.float32):
+        if type(value) is not np.ndarray and _float(value) is False and _int(value) is False:
             value = float(_transfer_to_cpu(value))
         return value
     return wrapper
