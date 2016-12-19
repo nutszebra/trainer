@@ -60,7 +60,7 @@ class LogModel(object):
 
     @staticmethod
     def _b(ele):
-        return hasattr(ele, 'b')
+        return hasattr(ele, 'b') and ele['b'] is not None
 
     @staticmethod
     def _link(ele):
