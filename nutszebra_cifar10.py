@@ -112,6 +112,7 @@ class TrainCifar10(object):
                 sum_loss += loss.data * data_length
                 del loss
                 del x
+                del y
                 del t
             optimizer.update()
             log_model.save_stat()
@@ -161,6 +162,7 @@ class TrainCifar10(object):
             model.save_computational_graph(loss, path=save_path)
             del loss
             del x
+            del y
             del t
         # sum_loss
         log({'loss': float(sum_loss)}, 'test_loss')
