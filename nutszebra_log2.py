@@ -2,8 +2,8 @@ import six
 import numpy as np
 from nutszebra_utility import Utility as utility
 import matplotlib
-import matplotlib.pyplot as plt
 matplotlib.use('Agg', warn=False)
+import matplotlib.pyplot as plt
 
 
 class Log2(object):
