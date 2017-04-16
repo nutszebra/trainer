@@ -3,7 +3,6 @@ import itertools
 import numpy as np
 from chainer import serializers
 import nutszebra_log2
-import nutszebra_slack
 import nutszebra_utility
 import nutszebra_log_model
 import nutszebra_sampling
@@ -16,7 +15,6 @@ import nutszebra_data_augmentation_picture
 Da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
 sampling = nutszebra_sampling.Sampling()
 preprocess = nutszebra_preprocess_picture.PreprocessPicture()
-slack = nutszebra_slack.Slack()
 utility = nutszebra_utility.Utility()
 
 
@@ -116,10 +114,6 @@ class UnilabelTrainer(object):
             log_model.save_stat()
             log_model.save_grad()
         log({'loss': float(sum_loss)}, 'train_loss')
-        try:
-            slack.post(log.train_loss())
-        except:
-            pass
         print(log.train_loss())
 
     def test_one_epoch(self):
@@ -185,10 +179,6 @@ class UnilabelTrainer(object):
                 log({'accuracy': int(value)}, 'test_accuracy_{}_{}'.format(key[0], key[1]))
         # show logs
         sen = [log.test_loss(), log.test_accuracy(max_flag=True), log.test_each_accuracy(max_flag=True)]
-        try:
-            slack.post('\n'.join(sen))
-        except:
-            pass
         print('\n'.join(sen))
 
     def run(self):
