@@ -20,7 +20,7 @@ utility = nutszebra_utility.Utility()
 
 class TrainIlsvrcObjectLocalizationClassification(object):
 
-    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, load_data=None, da=nutszebra_data_augmentation.DataAugmentationCifar10NormalizeSmall, save_path='./', epoch=100, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4):
+    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, load_data=None, da=nutszebra_data_augmentation.DataAugmentationNormalizeBigger, save_path='./', epoch=100, batch=128, gpu=-1, start_epoch=1, train_batch_divide=1, test_batch_divide=1):
         self.model = model
         self.optimizer = optimizer
         self.load_model = load_model
