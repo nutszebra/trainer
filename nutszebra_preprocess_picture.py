@@ -2,8 +2,10 @@ from skimage import io
 from skimage import color
 import numpy as np
 import six
+import cv2
 import nutszebra_preprocess
 from scipy.misc import imresize
+from nutszebra_selectivesearch import selective_search
 from PIL import Image
 
 
@@ -129,7 +131,7 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
             return False
 
     @staticmethod
-    def picture_is_too_small(path, sizes=(32, 32)):
+    def picture_is_too_small(path, sizes=(32, 32), ndim=3):
         """Check whether picture is too small or not
 
             Args:
@@ -143,17 +145,23 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         if img is False:
             # if unreadable, return False
             return False
-        if img.ndim is not 3:
-            return False
-        y, x, channel = img.shape
-        if channel is not 3:
-            return False
-        if y >= sizes[0] and x >= sizes[1]:
-            # if big enough, return picture list
-            return img
-        else:
-            # if picture is too small, return False
-            return False
+        if ndim == 2 and img.ndim == 2:
+            y, x = img.shape
+            if y >= sizes[0] and x >= sizes[1]:
+                # if big enough, return picture list
+                return img
+            else:
+                # if picture is too small, return False
+                return False
+        if ndim == 3 and img.ndim == 3:
+            y, x, channel = img.shape
+            if channel == 3 and y >= sizes[0] and x >= sizes[1]:
+                # if big enough, return picture list
+                return img
+            else:
+                # if picture is too small, return False
+                return False
+        return False
 
     @staticmethod
     def resize_images(images, sizes=(224, 224), interpolation="bilinear", mode='RGB'):
@@ -199,7 +207,7 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         return answer
 
     @staticmethod
-    def resize_image(image, sizes=(224, 224), interpolation="bilinear", mode='RGB'):
+    def resize_image(image, sizes=(224, 224), interpolation="bilinear", mode='RGB', cv2_flag=False):
         """Resize image
 
         Note:
@@ -236,6 +244,8 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
             list: resized image
         """
 
+        if cv2_flag is True:
+            return cv2.resize(image, sizes[::-1], interpolation=PreprocessPicture.interpolation_to_num(interpolation))
         return imresize(image, sizes, interp=interpolation, mode=mode)
 
     @staticmethod
@@ -276,6 +286,11 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         return iou
 
     @staticmethod
+    def selective_search(img, scale=500, sigma=0.9, min_size=10):
+        img_lbl, regions = selective_search(img, scale=500, sigma=0.9, min_size=10)
+        return img_lbl, regions
+
+    @staticmethod
     def cv2_interpolation(num):
         """Each number corresponds to the way of interpolation
 
@@ -313,3 +328,19 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         if num == 4:
             return 'INTER_LANCZOS4'
         return str(num)
+
+    @staticmethod
+    def interpolation_to_num(interpolation):
+        if interpolation == 'nearest':
+            return 0
+        if interpolation == 'bilinear':
+            return 1
+        if interpolation == 'bicubic':
+            return 2
+        if interpolation == 'cubic':
+            return 2
+        if interpolation == 'area':
+            return 3
+        if interpolation == 'lancz0s4':
+            return 4
+        return interpolation
