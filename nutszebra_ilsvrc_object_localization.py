@@ -58,7 +58,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         train_y = np.array(train_y)
         test_x = np.array(test_x)
         test_y = np.array(test_y)
-        return (train_x, train_y, test_x, test_y, picture_number_at_each_, categories)
+        return (train_x, train_y, test_x, test_y, picture_number_at_each_categories, categories)
 
     def log_init(self):
         load_log = self.load_log
