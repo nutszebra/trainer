@@ -12,6 +12,7 @@ import nutszebra_data_augmentation_picture
 import nutszebra_data_augmentation
 import nutszebra_basic_print
 
+Da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
 sampling = nutszebra_sampling.Sampling()
 preprocess = nutszebra_preprocess_picture.PreprocessPicture()
 da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
@@ -108,9 +109,13 @@ class TrainIlsvrcObjectLocalizationClassification(object):
                 t = train_y[indices[ii:ii + batch_of_batch]]
                 data_length = len(x)
                 tmp_x = []
-                for img in x:
-                    img, info = self.da.train(img)
-                    tmp_x.append(img)
+                tmp_t = []
+                for i in six.moves.range(len(x)):
+                    img, info = self.da.train(x[i])
+                    if img is not None:
+                        tmp_x.append(img)
+                        tmp_t.append(t[i])
+                tmp_x = Da.zero_padding(tmp_x)
                 x = model.prepare_input(tmp_x, dtype=np.float32, volatile=False)
                 y = model(x, train=True)
                 t = model.prepare_input(t, dtype=np.int32, volatile=False)
