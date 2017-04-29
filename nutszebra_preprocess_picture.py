@@ -5,7 +5,6 @@ import six
 import cv2
 import nutszebra_preprocess
 from scipy.misc import imresize
-from nutszebra_selectivesearch import selective_search
 from PIL import Image
 
 
