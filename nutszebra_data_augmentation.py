@@ -143,7 +143,7 @@ class DataAugmentationNormalizeBigger(object):
     @staticmethod
     @reset
     def test(img):
-        da.load_picture(img).resize_image_randomly(1.0, size_range=(384, 384), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
+        da.load_picture(img).gray_to_rgb(1.0).resize_image_randomly(1.0, size_range=(384, 384), interpolation='bilinear').normalize_picture(1.0, value=10.).convert_to_chainer_format(1.0)
         return da.x, da.info
 
 
