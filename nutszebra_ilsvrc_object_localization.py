@@ -118,7 +118,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
                 tmp_x = Da.zero_padding(tmp_x)
                 x = model.prepare_input(tmp_x, dtype=np.float32, volatile=False)
                 y = model(x, train=True)
-                t = model.prepare_input(t, dtype=np.int32, volatile=False)
+                t = model.prepare_input(tmp_t, dtype=np.int32, volatile=False)
                 loss = model.calc_loss(y, t) / train_batch_divide
                 loss.backward()
                 loss.to_cpu()
