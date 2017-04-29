@@ -20,7 +20,7 @@ utility = nutszebra_utility.Utility()
 
 class TrainIlsvrcObjectLocalizationClassification(object):
 
-    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, load_data=None, da=nutszebra_data_augmentation.DataAugmentationNormalizeBigger, save_path='./', epoch=100, batch=128, gpu=-1, start_epoch=1, train_batch_divide=1, test_batch_divide=1):
+    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, load_data=None, da=nutszebra_data_augmentation.DataAugmentationCifar10NormalizeSmall, save_path='./', epoch=100, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4):
         self.model = model
         self.optimizer = optimizer
         self.load_model = load_model
@@ -35,7 +35,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         self.start_epoch = start_epoch
         self.train_batch_divide = train_batch_divide
         self.test_batch_divide = test_batch_divide
-        self.train_x, self.train_y, self.test_x, self.test_y, self.categories = self.data_init()
+        self.train_x, self.train_y, self.test_x, self.test_y, self.picture_number_at_each_categories, self.categories = self.data_init()
         self.log = self.log_init()
         self.model_init()
         self.save_path = save_path if save_path[-1] == '/' else save_path + '/'
@@ -45,15 +45,20 @@ class TrainIlsvrcObjectLocalizationClassification(object):
     def data_init(self):
         data = nutszebra_load_ilsvrc_object_localization.LoadDataset(self.load_data)
         train_x, train_y, test_x, test_y = [], [], [], []
-        keys = list(data['val'].keys())
-        keys.sort()
+        keys = sorted(list(data['val'].keys()))
+        picture_number_at_each_categories = []
         for i, key in enumerate(keys):
+            picture_number_at_each_categories.append(len(data['train_cls'][key]))
             train_x += data['train_cls'][key]
             train_y += [i for _ in six.moves.range(len(data['train_cls'][key]))]
             test_x += data['val'][key]
             test_y += [i for _ in six.moves.range(len(data['val'][key]))]
         categories = keys
-        return (train_x, train_y, test_x, test_y, categories)
+        train_x = np.array(train_x)
+        train_y = np.array(train_y)
+        test_x = np.array(test_x)
+        test_y = np.array(test_y)
+        return (train_x, train_y, test_x, test_y, picture_number_at_each_, categories)
 
     def log_init(self):
         load_log = self.load_log
@@ -93,7 +98,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         train_batch_divide = self.train_batch_divide
         batch_of_batch = int(batch / train_batch_divide)
         sum_loss = 0
-        yielder = sampling.yield_random_batch_samples(int(len(train_x) / batch), batch, len(train_x), sort=False)
+        yielder = sampling.yield_random_batch_from_category(int(len(train_x) / batch), self.picture_number_at_each_categories, batch, shuffle=True)
         progressbar = utility.create_progressbar(int(len(train_x) / batch), desc='train', stride=1)
         # train start
         for _, indices in six.moves.zip(progressbar, yielder):
@@ -135,6 +140,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         false_accuracy = {}
         for ii in six.moves.range(len(categories)):
             sum_accuracy[ii] = 0
+            sum_5_accuracy[ii] = 0
         elements = six.moves.range(len(categories))
         for ii, iii in itertools.product(elements, elements):
             false_accuracy[(ii, iii)] = 0
