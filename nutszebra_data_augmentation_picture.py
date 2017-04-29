@@ -18,12 +18,6 @@ def execute_based_on_probability(func):
         160707
 
     Test:
-        160708
-
-    Note:
-        | If __no_record is setted as True, decorator does not do anything.
-        | The first argument generates three behavior:
-        |    1. int or float: The decorator consider it as the probability, and execute the function based on probability. The input x for func is supplied via self.x.
         |    2. str or numpy.ndarray: The decorator treat it as the input x of func, thus set the first argument as self.x and pass it to func directly with **kwargs. You can give info as the second argumnet and in that case, the second argument becomes self.info. If you don't give info, new info is generated and setted as self.info.
         |    3. Nothing or None: The first argument is treated as 1.0.
 
@@ -52,10 +46,16 @@ def execute_based_on_probability(func):
             probability = float(x_or_probability)
             # 0<=np.random.rand()<=1
             if probability == 1.0 or probability >= np.random.rand():
-                # func needs only **kwargs to change behavior
-                self.x, self.info[self.info['pc']] = func(self, self.x, **kwargs)
-                # func has been executed
-                self.info[(self.info['pc'], 'execute')] = True
+                if self.x is None:
+                    if self.info is None:
+                        self.info = dict_n({'pc': 0})
+                    self.info[self.info['pc']] = {}
+                    self.info[(self.info['pc'], 'execute')] = False
+                else:
+                    # func needs only **kwargs to change behavior
+                    self.x, self.info[self.info['pc']] = func(self, self.x, **kwargs)
+                    # func has been executed
+                    self.info[(self.info['pc'], 'execute')] = True
             else:
                 # nothing happened
                 self.info[(self.info['pc'], 'execute')] = False
@@ -343,14 +343,14 @@ class DataAugmentationPicture(object):
                 ((12, 22), (87, 97))
 
         Args:
-            picture_shape (tuple): (height, width, channel)
+            picture_shape (tuple): (height, width)
             sizes (tuple): sizes[0] is height (y) and sizes[1] is width (x)
 
         Returns:
             tuple: return keypoint, ((start_y, end_y), (start_x, end_x))
         """
 
-        y, x, channel = picture_shape
+        y, x = picture_shape
         length_y, length_x = sizes
         # pick random number
         keypoint_y = sampling.pick_random_permutation(1, y - length_y + 1)[0]
@@ -598,7 +598,10 @@ class DataAugmentationPicture(object):
         """
 
         if sizes == 'biggest':
-            sizes = DataAugmentationPicture.find_biggest_picture(pictures)
+            try:
+                sizes = DataAugmentationPicture.find_biggest_picture(pictures)
+            except:
+                return pictures
         if dtype is None:
             dtype = pictures[0].dtype
         answer = []
@@ -610,7 +613,7 @@ class DataAugmentationPicture(object):
         return answer
 
     @execute_based_on_probability
-    def load_picture(self, x_or_probability, dtype=None):
+    def load_picture(self, x_or_probability, dtype=None, ndim=3, channel=3):
         """Load picture (this is the wrapper of nutszebra.PreprocessPicture.load_picture)
 
         Edited date:
@@ -642,8 +645,17 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
-        info = {'path': x_or_probability}
-        return (preprocess.load_picture(x_or_probability, dtype=dtype), info)
+        try:
+            info = {'path': x_or_probability, 'ndim': ndim, 'channel': channel}
+            img = preprocess.load_picture(x_or_probability, dtype=dtype)
+            if ndim == 2 and img.ndim == ndim:
+                return (img, info)
+            if ndim == 3 and img.ndim == ndim:
+                return (img[:, :, :channel], info)
+            else:
+                return (None, info)
+        except:
+            return (None, info)
 
     @execute_based_on_probability
     def horizontal_flipping(self, x_or_probability):
@@ -745,10 +757,12 @@ class DataAugmentationPicture(object):
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
 
+        if x_or_probability.ndim == 2:
+            return (x_or_probability[np.newaxis], {})
         return (np.transpose(x_or_probability, (2, 0, 1)), {})
 
     @execute_based_on_probability
-    def resize_image_randomly(self, x_or_probability, size_range=(256, 512), interpolation='random'):
+    def resize_image_randomly(self, x_or_probability, size_range=(256, 512), interpolation='random', mode='RGB'):
         """Resize an image randomly
 
         Edited date:
@@ -816,7 +830,7 @@ class DataAugmentationPicture(object):
         oneside_length = sampling.pick_random_permutation(1, size_range[1] - size_range[0] + 1)[0]
         # Add random number to size_range[0]
         oneside_length = size_range[0] + oneside_length
-        y, x, channel = x_or_probability.shape
+        y, x = x_or_probability.shape[:2]
         # calculate the size to keep the ratio of the picture
         # find smaller side of picture and then calculate the scale
         if y <= x:
@@ -826,7 +840,8 @@ class DataAugmentationPicture(object):
             scale = float(oneside_length) / x
             sizes = (int(scale * y), oneside_length)
         info = {'resized_size': sizes, 'original_size': (y, x), 'actual_interpolation': interpolation, 'scale': scale}
-        return (preprocess.resize_image(x_or_probability, sizes, interpolation=interpolation), info)
+        cv2_flag = x_or_probability.ndim == 2
+        return (preprocess.resize_image(x_or_probability, sizes, interpolation=interpolation, mode=mode, cv2_flag=cv2_flag), info)
 
     @execute_based_on_probability
     def crop_picture_randomly(self, x_or_probability, sizes=(224, 224)):
@@ -864,8 +879,8 @@ class DataAugmentationPicture(object):
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
 
-        y, x, channel = x_or_probability.shape
-        keypoints = DataAugmentationPicture.get_keypoints_randomly_for_cropping((y, x, channel), sizes)
+        y, x = x_or_probability.shape[0:2]
+        keypoints = DataAugmentationPicture.get_keypoints_randomly_for_cropping((y, x), sizes)
         info = {'keypoints': keypoints, 'original_size': (y, x)}
         return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), info)
 
@@ -1290,3 +1305,30 @@ class DataAugmentationPicture(object):
         """
         random_value = np.random.uniform(low, high)
         return (imrotate(x_or_probability, random_value, reshape=True), {'random_value': random_value})
+
+    @execute_based_on_probability
+    def to_bgr(self, x_or_probability):
+        return (x_or_probability[:, :, ::-1], {})
+
+    @execute_based_on_probability
+    def to_rgb(self, x_or_probability):
+        return (x_or_probability[:, :, ::-1], {})
+
+    @execute_based_on_probability
+    def subtract_constant_mean(self, x_or_probability, rgb=(123.68, 116.779, 103.939)):
+        img = np.array(x_or_probability.copy(), dtype=np.float64)
+        r, g, b = rgb
+        img[:, :, 0] -= r
+        img[:, :, 1] -= g
+        img[:, :, 2] -= b
+        return (img, {})
+
+    @execute_based_on_probability
+    def gray_to_rgb(self, x_or_probability):
+        if x_or_probability.ndim == 3:
+            return (x_or_probability, {})
+        elif x_or_probability.ndim == 2:
+            img = np.zeros(x_or_probability.shape + (3, ), dtype=x_or_probability.dtype)
+            for i in six.moves.range(3):
+                img[:, :, i] = x_or_probability.copy()
+            return (img, {})
