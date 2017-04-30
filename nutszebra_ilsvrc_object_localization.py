@@ -163,7 +163,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
             t = model.prepare_input(t, dtype=np.int32, volatile=True)
             loss = model.calc_loss(y, t)
             sum_loss += loss.data * data_length
-            tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = model.accuracy(y, t)
+            tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = model.accuracy_n(y, t, n=5)
             for key in tmp_accuracy:
                 sum_accuracy[key] += tmp_accuracy[key]
             for key in tmp_5_accuracy:
@@ -195,7 +195,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
                 value = false_accuracy[key]
                 log({'accuracy': int(value)}, 'test_accuracy_{}_{}'.format(key[0], key[1]))
         # show logs
-        sen = [log.test_loss(), log.test_accuracy(max_flag=True), log.test_each_accuracy(max_flag=True)]
+        sen = [log.test_loss(), log.test_accuracy(max_flag=True), log.test_5_accuracy(max_flag=True)]
         print('\n'.join(sen))
 
     def run(self):
