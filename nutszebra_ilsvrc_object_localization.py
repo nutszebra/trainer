@@ -153,7 +153,6 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         for i in progressbar:
             x = test_x[i:i + batch_of_batch]
             t = test_y[i:i + batch_of_batch]
-            data_length = len(x)
             tmp_x = []
             tmp_t = []
             for i in six.moves.range(len(x)):
@@ -161,6 +160,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
                 if img is not None:
                     tmp_x.append(img)
                     tmp_t.append(t[i])
+            data_length = len(tmp_x)
             tmp_x = Da.zero_padding(tmp_x)
             x = model.prepare_input(tmp_x, dtype=np.float32, volatile=True)
             y = model(x, train=False)
