@@ -166,6 +166,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
             y = model(x, train=False)
             t = model.prepare_input(tmp_t, dtype=np.int32, volatile=True)
             loss = model.calc_loss(y, t)
+            loss.to_cpu()
             sum_loss += loss.data * data_length
             tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = model.accuracy_n(y, t, n=5)
             for key in tmp_accuracy:
@@ -175,6 +176,11 @@ class TrainIlsvrcObjectLocalizationClassification(object):
             for key in tmp_false_accuracy:
                 false_accuracy[key] += tmp_false_accuracy[key]
             model.save_computational_graph(loss, path=save_path)
+            del tmp_x
+            del tmp_t
+            del loss
+            del x
+            del t
         # sum_loss
         log({'loss': float(sum_loss)}, 'test_loss')
         # sum_accuracy
