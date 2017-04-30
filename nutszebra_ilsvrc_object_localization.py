@@ -155,12 +155,16 @@ class TrainIlsvrcObjectLocalizationClassification(object):
             t = test_y[i:i + batch_of_batch]
             data_length = len(x)
             tmp_x = []
-            for img in x:
-                img, info = self.da.test(img)
-                tmp_x.append(img)
+            tmp_t = []
+            for i in six.moves.range(len(x)):
+                img, info = self.da.test(x[i])
+                if img is not None:
+                    tmp_x.append(img)
+                    tmp_t.append(t[i])
+            tmp_x = Da.zero_padding(tmp_x)
             x = model.prepare_input(tmp_x, dtype=np.float32, volatile=True)
             y = model(x, train=False)
-            t = model.prepare_input(t, dtype=np.int32, volatile=True)
+            t = model.prepare_input(tmp_t, dtype=np.int32, volatile=True)
             loss = model.calc_loss(y, t)
             sum_loss += loss.data * data_length
             tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = model.accuracy_n(y, t, n=5)
