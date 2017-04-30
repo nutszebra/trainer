@@ -87,6 +87,10 @@ class Log2(object):
         parameter = self.search('test_parameter')[0]['parameter']
         return 'total accuracy ' + Log2.show(Log2.divide(self.search('test_accuracy'), up='accuracy', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
 
+    def test_5_accuracy(self, recent=5, max_flag=False, min_flag=False, prefix='accuracy'):
+        parameter = self.search('test_parameter')[0]['parameter']
+        return 'total accuracy ' + Log2.show(Log2.divide(self.search('test_5_accuracy'), up='accuracy', down=parameter), recent=recent, max_flag=max_flag, min_flag=min_flag, prefix=prefix)
+
     def test_each_accuracy(self, recent=5, max_flag=False, min_flag=False, prefix='accuracy'):
         answer = []
         categories = self.search('categories')[0]['are']
