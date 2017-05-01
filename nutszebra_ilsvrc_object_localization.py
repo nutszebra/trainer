@@ -41,7 +41,6 @@ class TrainIlsvrcObjectLocalizationClassification(object):
         self.model_init()
         self.save_path = save_path if save_path[-1] == '/' else save_path + '/'
         utility.make_dir(self.save_path + 'model')
-        self.log_model = nutszebra_log_model.LogModel(self.model, save_path=self.save_path)
 
     def data_init(self):
         data = nutszebra_load_ilsvrc_object_localization.LoadDataset(self.load_data)
@@ -90,7 +89,6 @@ class TrainIlsvrcObjectLocalizationClassification(object):
     def train_one_epoch(self):
         # initialization
         log = self.log
-        log_model = self.log_model
         model = self.model
         optimizer = self.optimizer
         train_x = self.train_x
@@ -124,8 +122,7 @@ class TrainIlsvrcObjectLocalizationClassification(object):
                 loss.to_cpu()
                 sum_loss += loss.data * data_length
             optimizer.update()
-            log_model.save_stat()
-            log_model.save_grad()
+        log({'loss': float(sum_loss)}, 'train_loss')
         print(log.train_loss())
 
     def test_one_epoch(self):
