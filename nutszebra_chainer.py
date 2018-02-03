@@ -86,7 +86,7 @@ class Model(chainer.Chain):
         except RuntimeError:
             return np
 
-    def prepare_input(self, X, dtype=np.float32, volatile=False, xp=None, gpu=None):
+    def prepare_input(self, X, dtype=np.float32, xp=None, gpu=None):
         """Prepare input for chainer
 
         Example:
@@ -109,7 +109,7 @@ class Model(chainer.Chain):
         """
         if gpu is not None:
             inp = np.asarray(X, dtype=dtype)
-            inp = chainer.Variable(inp, volatile=volatile)
+            inp = chainer.Variable(inp)
             inp.to_gpu(gpu)
             return inp
         if xp is None:
@@ -119,7 +119,7 @@ class Model(chainer.Chain):
                 inp = self.nz_xp.asarray(X, dtype=dtype)
         else:
             inp = xp.asarray(X, dtype=dtype)
-        return chainer.Variable(inp, volatile=volatile)
+        return chainer.Variable(inp)
 
     def save_computational_graph(self, loss, path='./', name='model.dot'):
         """Save computational graph
