@@ -1,6 +1,7 @@
 import six
 import itertools
 import numpy as np
+import chainer
 from chainer import serializers
 import nutszebra_log2
 # import nutszebra_slack
@@ -114,9 +115,9 @@ class TrainCifar10(object):
                 for img in x:
                     img, info = self.da.train(img)
                     tmp_x.append(img)
-                x = model.prepare_input(tmp_x, dtype=np.float32, volatile=False)
-                y = model(x, train=True)
-                t = model.prepare_input(t, dtype=np.int32, volatile=False)
+                x = model.prepare_input(tmp_x, dtype=np.float32)
+                y = model(x)
+                t = model.prepare_input(t, dtype=np.int32)
                 loss = model.calc_loss(y, t) / train_batch_divide
                 loss.backward()
                 loss.unchain_backward()
@@ -163,9 +164,9 @@ class TrainCifar10(object):
             for img in x:
                 img, info = self.da.test(img)
                 tmp_x.append(img)
-            x = model.prepare_input(tmp_x, dtype=np.float32, volatile=True)
-            y = model(x, train=False)
-            t = model.prepare_input(t, dtype=np.int32, volatile=True)
+            x = model.prepare_input(tmp_x, dtype=np.float32)
+            y = model(x)
+            t = model.prepare_input(t, dtype=np.int32)
             loss = model.calc_loss(y, t)
             sum_loss += loss.data * data_length
             tmp_accuracy, tmp_false_accuracy = model.accuracy(y, t)
@@ -211,12 +212,14 @@ class TrainCifar10(object):
         save_path = self.save_path
         epoch_progressbar = utility.create_progressbar(epoch + 1, desc='epoch', stride=1, start=start_epoch)
         for i in epoch_progressbar:
-            self.train_one_epoch()
+            with chainer.using_config('train', True):
+                self.train_one_epoch()
             # save graph once
             # save model
-            model.save_model('{}model/{}_{}.model'.format(save_path, model.name, i))
+            model.save_model('{}model/{}_{}.model'.format(save_path, model.name, i), gpu=self.gpu)
             optimizer(i)
-            self.test_one_epoch()
+            with chainer.using_config('train', False):
+                self.test_one_epoch()
             log.generate_loss_figure('{}loss.jpg'.format(save_path))
             log.generate_accuracy_figure('{}accuracy.jpg'.format(save_path))
             log.save(save_path + 'log.json')
