@@ -86,8 +86,8 @@ class _Worker(multiprocessing.Process):
                     processed = p.starmap(process_train, args)
                     tmp_x, tmp_t = list(zip(*processed))
                     train = True
-                    x = self.model.prepare_input(tmp_x, dtype=np.float32, volatile=not train, gpu=self.device)
-                    t = self.model.prepare_input(tmp_t, dtype=np.int32, volatile=not train, gpu=self.device)
+                    x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.device)
+                    t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.device)
                     y = self.model(x, train=train)
                     loss = self.model.calc_loss(y, t) / self.number_of_devices / self.train_batch_divide
                     loss.backward()
@@ -375,8 +375,8 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
                 tmp_x, tmp_t = list(zip(*processed))
                 data_length = len(tmp_x)
                 train = True
-                x = self.model.prepare_input(tmp_x, dtype=np.float32, volatile=not train, gpu=self.gpus[0])
-                t = self.model.prepare_input(tmp_t, dtype=np.int32, volatile=not train, gpu=self.gpus[0])
+                x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
+                t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.gpus[0])
                 y = self.model(x, train=train)
                 loss = self.model.calc_loss(y, t) / len(self.gpus)
                 loss.backward()
@@ -462,8 +462,8 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
                 tmp_x, tmp_t = list(zip(*processed))
                 data_length = len(tmp_x)
                 train = False
-                x = self.model.prepare_input(tmp_x, dtype=np.float32, volatile=not train, gpu=self.gpus[0])
-                t = self.model.prepare_input(tmp_t, dtype=np.int32, volatile=not train, gpu=self.gpus[0])
+                x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
+                t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.gpus[0])
                 y = self.model(x, train=train)
                 tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = self.model.accuracy_n(y, t, n=5)
                 for key in tmp_accuracy:
@@ -514,7 +514,7 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
             processed = p.starmap(process_test, args)
             tmp_x, filenames = list(zip(*processed))
             train = False
-            x = self.model.prepare_input(tmp_x, dtype=np.float32, volatile=not train, gpu=self.gpus[0])
+            x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
             y = self.model(x, train=train)
             for i in six.moves.range(len(filenames)):
                 results[filenames[i]] = [float(num) for num in y.data[i]]
