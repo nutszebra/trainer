@@ -88,7 +88,7 @@ class _Worker(multiprocessing.Process):
                     train = True
                     x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.device)
                     t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.device)
-                    y = self.model(x, train=train)
+                    y = self.model(x)
                     loss = self.model.calc_loss(y, t) / self.number_of_devices / self.train_batch_divide
                     loss.backward()
 
@@ -377,7 +377,7 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
                 train = True
                 x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
                 t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.gpus[0])
-                y = self.model(x, train=train)
+                y = self.model(x)
                 loss = self.model.calc_loss(y, t) / len(self.gpus)
                 loss.backward()
                 loss.to_cpu()
@@ -464,7 +464,7 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
                 train = False
                 x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
                 t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.gpus[0])
-                y = self.model(x, train=train)
+                y = self.model(x)
                 tmp_accuracy, tmp_5_accuracy, tmp_false_accuracy = self.model.accuracy_n(y, t, n=5)
                 for key in tmp_accuracy:
                     sum_accuracy[key] += tmp_accuracy[key]
@@ -515,7 +515,7 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
             tmp_x, filenames = list(zip(*processed))
             train = False
             x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.gpus[0])
-            y = self.model(x, train=train)
+            y = self.model(x)
             for i in six.moves.range(len(filenames)):
                 results[filenames[i]] = [float(num) for num in y.data[i]]
         p.close()
