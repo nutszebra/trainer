@@ -58,7 +58,7 @@ class Model(chainer.Chain):
 
         if gpu >= 0:
             cuda.get_device(gpu).use()
-            self.to_gpu()
+            self.to_gpu(gpu)
             return True
         return False
 
@@ -86,7 +86,7 @@ class Model(chainer.Chain):
         except RuntimeError:
             return np
 
-    def prepare_input(self, X, dtype=np.float32, volatile=False, xp=None):
+    def prepare_input(self, X, dtype=np.float32, volatile=False, xp=None, gpu=None):
         """Prepare input for chainer
 
         Example:
@@ -107,7 +107,11 @@ class Model(chainer.Chain):
         Returns:
             chainer.Variable : you can use this value for input of chainer model
         """
-
+        if gpu is not None:
+            inp = np.asarray(X, dtype=dtype)
+            inp = chainer.Variable(inp, volatile=volatile)
+            inp.to_gpu(gpu)
+            return inp
         if xp is None:
             if self.model_is_cpu_mode():
                 inp = np.asarray(X, dtype=dtype)
@@ -170,7 +174,7 @@ class Model(chainer.Chain):
     def load_model(self, path=''):
         serializers.load_npz(path, self)
 
-    def save_model(self, path=''):
+    def save_model(self, path='', gpu=0):
         """Save chainer model
 
         Example:
@@ -201,7 +205,7 @@ class Model(chainer.Chain):
         serializers.save_npz(path, self)
         # if gpu_flag is True, switch the model to gpu mode at last
         if gpu_flag:
-            self.to_gpu()
+            self.to_gpu(gpu)
         return True
 
     def save_optimizer(self, optimizer, path=''):

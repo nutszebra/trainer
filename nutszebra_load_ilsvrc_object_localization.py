@@ -1,4 +1,5 @@
 import cv2
+import six
 import numpy as np
 from time import sleep
 import xml.etree.ElementTree as ET
@@ -18,18 +19,32 @@ class Assignment(object):
 class LoadDataset(Assignment):
 
     filename = ['test.txt', 'train_cls.txt', 'train_loc.txt', 'val.txt']
+    keys = ['test', 'train_cls', 'train_loc', 'val']
 
     def __init__(self, ilsvrc_path, flag_debug=False):
         super(LoadDataset, self).__init__()
         ilsvrc_path = ilsvrc_path[:-1] if ilsvrc_path[-1] == '/' else ilsvrc_path
-        for f in self.filename:
-            key = f.split('.')[0]
-            if 'train' in f:
+        print('loading ILSVRC dataset')
+        for f, key in six.moves.zip(self.filename, self.keys):
+            print('    {}'.format(f))
+            if '{}.pkl'.format(key) in utility.find_files(ilsvrc_path, affix_flag=True):
+                print('        Already {} were loaded before'.format(f))
+                self[key] = utility.load_pickle('{}/{}.pkl'.format(ilsvrc_path, key))
+            elif 'train' in f:
+                print('        Loading')
                 self[key] = self._train('{}/ImageSets/CLS-LOC/{}'.format(ilsvrc_path, f), '{}/Data/CLS-LOC/train'.format(ilsvrc_path))
+                utility.save_pickle(self[key], '{}/{}.pkl'.format(ilsvrc_path, key))
+                print('        Done')
             elif 'val' in f:
+                print('        Loading')
                 self[key] = self._val('{}/ImageSets/CLS-LOC/{}'.format(ilsvrc_path, f), '{}/Data/CLS-LOC/val'.format(ilsvrc_path), '{}/Annotations/CLS-LOC/val'.format(ilsvrc_path))
+                utility.save_pickle(self[key], '{}/{}.pkl'.format(ilsvrc_path, key))
+                print('        Done')
             elif 'test' in f:
+                print('        Loading')
                 self[key] = self._test('{}/ImageSets/CLS-LOC/{}'.format(ilsvrc_path, f), '{}/Data/CLS-LOC/test'.format(ilsvrc_path))
+                utility.save_pickle(self[key], '{}/{}.pkl'.format(ilsvrc_path, key))
+                print('        Done')
         self.debug(flag_debug)
 
     def debug(self, flag=False):

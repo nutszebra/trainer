@@ -4,6 +4,7 @@ from nutszebra_utility import Utility as utility
 import matplotlib
 matplotlib.use('Agg', warn=False)
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 
 class Log2(object):

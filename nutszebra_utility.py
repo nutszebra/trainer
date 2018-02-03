@@ -691,7 +691,7 @@ class Utility(object):
         return True
 
     @staticmethod
-    def load_pickle(path):
+    def load_pickle(path, encoding=None):
         """Load pickle
 
         Edited date:
@@ -714,7 +714,10 @@ class Utility(object):
             loaded pickle
         """
         with open(path, 'rb') as f:
-            answer = pickle.load(f)
+            if encoding is None:
+                answer = pickle.load(f)
+            else:
+                answer = pickle.load(f, encoding=encoding)
         return answer
 
     @staticmethod

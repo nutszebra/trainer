@@ -17,7 +17,7 @@ class DataAugmentationCifar10NormalizeSmall(object):
     @staticmethod
     @reset
     def train(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(32, 36)).crop_picture_randomly(1.0, sizes=(32, 32)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(32, 36)).crop_picture_randomly(1.0, sizes=(32, 32)).cutout(0.5, sizes=(16, 16)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
@@ -32,7 +32,7 @@ class DataAugmentationCifar10NormalizeMiddle(object):
     @staticmethod
     @reset
     def train(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(64, 68)).crop_picture_randomly(1.0, sizes=(64, 64)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(64, 68)).crop_picture_randomly(1.0, sizes=(64, 64)).cutout(0.5, sizes=(32, 32)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
@@ -47,7 +47,7 @@ class DataAugmentationCifar10NormalizeBig(object):
     @staticmethod
     @reset
     def train(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(128, 132)).crop_picture_randomly(1.0, sizes=(128, 128)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(128, 132)).crop_picture_randomly(1.0, sizes=(128, 128)).cutout(0.5, sizes=(64, 64)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
@@ -62,7 +62,7 @@ class DataAugmentationCifar10NormalizeBigger(object):
     @staticmethod
     @reset
     def train(img):
-        da.convert_to_image_format(img).resize_image_randomly(1.0, size_range=(256, 512)).crop_picture_randomly(1.0, sizes=(224, 224)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da.convert_to_image_format(img).resize_image_randomly(1.0, size_range=(256, 512)).crop_picture_randomly(1.0, sizes=(224, 224)).cutout(0.5, sizes=(112, 112)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod
@@ -77,7 +77,7 @@ class DataAugmentationCifar10NormalizeHuge(object):
     @staticmethod
     @reset
     def train(img):
-        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(299, 512)).crop_picture_randomly(1.0, sizes=(299, 299)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
+        da(img).convert_to_image_format(1.0).resize_image_randomly(1.0, size_range=(299, 512)).crop_picture_randomly(1.0, sizes=(299, 299)).cutout(0.5, sizes=(114, 114)).normalize_picture(1.0, value=10.).horizontal_flipping(0.5).convert_to_chainer_format(1.0)
         return da.x, da.info
 
     @staticmethod

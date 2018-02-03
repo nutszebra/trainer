@@ -20,7 +20,7 @@ utility = nutszebra_utility.Utility()
 
 class TrainCifar10(object):
 
-    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, da=nutszebra_data_augmentation.DataAugmentationCifar10NormalizeSmall, save_path='./', epoch=300, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4):
+    def __init__(self, model=None, optimizer=None, load_model=None, load_optimizer=None, load_log=None, da=nutszebra_data_augmentation.DataAugmentationCifar10NormalizeSmall, save_path='./', epoch=300, batch=128, gpu=-1, start_epoch=1, train_batch_divide=4, test_batch_divide=4, debug_flag=False):
         self.model = model
         self.optimizer = optimizer
         self.load_model = load_model
@@ -34,23 +34,34 @@ class TrainCifar10(object):
         self.start_epoch = start_epoch
         self.train_batch_divide = train_batch_divide
         self.test_batch_divide = test_batch_divide
-        self.train_x, self.train_y, self.test_x, self.test_y, self.meta, self.categories = self.data_init()
+        dl = nutszebra_download_cifar10.Cifar10()
+        data = dl.load_cifar10_data()
+        self.data_init(data['train_x'], data['train_y'], data['test_x'], data['test_y'])
         self.log = self.log_init()
         self.model_init()
         self.save_path = save_path if save_path[-1] == '/' else save_path + '/'
         utility.make_dir(self.save_path + 'model')
         self.log_model = nutszebra_log_model.LogModel(self.model, save_path=self.save_path)
+        self.debug_flag = debug_flag
 
-    def data_init(self):
-        dl = nutszebra_download_cifar10.Cifar10()
-        data = dl.load_cifar10_data()
-        train_x = data['train_x']
-        train_y = data['train_y']
-        test_x = data['test_x']
-        test_y = data['test_y']
-        meta = data['meta']
-        categories = list(set(train_y.tolist()))
-        return (train_x, train_y, test_x, test_y, meta, categories)
+    def data_init(self, _train_x, _train_y, _test_x, _test_y):
+        categories = sorted(list(set(_train_y.tolist())))
+        train_x, train_y, test_x, test_y = [], [], [], []
+        picture_number_at_each_categories = []
+        for i, category in enumerate(categories):
+            indices = np.where(_train_y == category)[0]
+            picture_number_at_each_categories.append(indices.shape[0])
+            train_x += _train_x[indices].tolist()
+            train_y += [i for _ in six.moves.range(indices.shape[0])]
+            indices = np.where(_test_y == category)[0]
+            test_x += _test_x[indices].tolist()
+            test_y += [i for _ in six.moves.range(indices.shape[0])]
+        self.train_x, self.train_y = np.array(train_x), np.array(train_y)
+        self.test_x, self.test_y = np.array(test_x), np.array(test_y)
+        self.picture_number_at_each_categories = picture_number_at_each_categories
+        self.categories = categories
+        print('picture_number_at_each_categories: {}'.format(self.picture_number_at_each_categories))
+        return (train_x, train_y, test_x, test_y, picture_number_at_each_categories, categories)
 
     def log_init(self):
         load_log = self.load_log
@@ -90,7 +101,7 @@ class TrainCifar10(object):
         train_batch_divide = self.train_batch_divide
         batch_of_batch = int(batch / train_batch_divide)
         sum_loss = 0
-        yielder = sampling.yield_random_batch_samples(int(len(train_x) / batch), batch, len(train_x), sort=False)
+        yielder = sampling.yield_random_batch_from_category(int(len(train_x) / batch), self.picture_number_at_each_categories, batch, shuffle=True)
         progressbar = utility.create_progressbar(int(len(train_x) / batch), desc='train', stride=1)
         # train start
         for _, indices in six.moves.zip(progressbar, yielder):
@@ -108,6 +119,7 @@ class TrainCifar10(object):
                 t = model.prepare_input(t, dtype=np.int32, volatile=False)
                 loss = model.calc_loss(y, t) / train_batch_divide
                 loss.backward()
+                loss.unchain_backward()
                 loss.to_cpu()
                 sum_loss += loss.data * data_length
                 del loss
@@ -115,8 +127,9 @@ class TrainCifar10(object):
                 del y
                 del t
             optimizer.update()
-            log_model.save_stat()
-            log_model.save_grad()
+            if self.debug_flag:
+                log_model.save_stat()
+                log_model.save_grad()
         log({'loss': float(sum_loss)}, 'train_loss')
         # slack.post(log.train_loss())
         print(log.train_loss())
@@ -141,6 +154,7 @@ class TrainCifar10(object):
         for ii, iii in itertools.product(elements, elements):
             false_accuracy[(ii, iii)] = 0
         progressbar = utility.create_progressbar(len(test_x), desc='test', stride=batch_of_batch)
+        results = []
         for i in progressbar:
             x = test_x[i:i + batch_of_batch]
             t = test_y[i:i + batch_of_batch]
@@ -159,6 +173,9 @@ class TrainCifar10(object):
                 sum_accuracy[key] += tmp_accuracy[key]
             for key in tmp_false_accuracy:
                 false_accuracy[key] += tmp_false_accuracy[key]
+            y = np.argmax(y.data, axis=1)
+            for ii in six.moves.range(t.data.shape[0]):
+                results.append(y[ii] == t.data[ii])
             model.save_computational_graph(loss, path=save_path)
             del loss
             del x
@@ -183,6 +200,7 @@ class TrainCifar10(object):
         sen = [log.test_loss(), log.test_accuracy(max_flag=True), log.test_each_accuracy(max_flag=True)]
         # slack.post('\n'.join(sen))
         print('\n'.join(sen))
+        return results
 
     def run(self):
         log = self.log

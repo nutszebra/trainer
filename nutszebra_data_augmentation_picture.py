@@ -652,6 +652,8 @@ class DataAugmentationPicture(object):
                 return (img, info)
             if ndim == 3 and img.ndim == ndim:
                 return (img[:, :, :channel], info)
+            if ndim == 3 and img.ndim == 2 and channel == 3:
+                return (np.array([img.copy(), img.copy(), img.copy()]).transpose(1, 2, 0), info)
             else:
                 return (None, info)
         except:
@@ -965,6 +967,61 @@ class DataAugmentationPicture(object):
         return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
 
     @execute_based_on_probability
+    def crop_upper_left(self, x_or_probability, sizes=(384, 384)):
+        y, x, channel = x_or_probability.shape
+        frame_y, frame_x = sizes
+        start_y = 0
+        end_y = min(frame_y, y)
+        start_x = 0
+        end_x = min(frame_x, x)
+        keypoints = ((start_y, end_y), (start_x, end_x))
+        return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
+
+    @execute_based_on_probability
+    def crop_top_left(self, x_or_probability, sizes=(384, 384)):
+        y, x, channel = x_or_probability.shape
+        frame_y, frame_x = sizes
+        start_y = 0
+        end_y = min(frame_y, y)
+        start_x = 0
+        end_x = min(frame_x, x)
+        keypoints = ((start_y, end_y), (start_x, end_x))
+        return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
+
+    @execute_based_on_probability
+    def crop_bottom_left(self, x_or_probability, sizes=(384, 384)):
+        y, x, channel = x_or_probability.shape
+        frame_y, frame_x = sizes
+        start_y = max(y - frame_y, 0)
+        end_y = y
+        start_x = 0
+        end_x = min(frame_x, x)
+        keypoints = ((start_y, end_y), (start_x, end_x))
+        return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
+
+    @execute_based_on_probability
+    def crop_top_right(self, x_or_probability, sizes=(384, 384)):
+        y, x, channel = x_or_probability.shape
+        frame_y, frame_x = sizes
+        start_y = 0
+        end_y = min(frame_y, y)
+        start_x = max(x - frame_x, 0)
+        end_x = x
+        keypoints = ((start_y, end_y), (start_x, end_x))
+        return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
+
+    @execute_based_on_probability
+    def crop_bottom_right(self, x_or_probability, sizes=(384, 384)):
+        y, x, channel = x_or_probability.shape
+        frame_y, frame_x = sizes
+        start_y = max(y - frame_y, 0)
+        end_y = y
+        start_x = max(x - frame_x, 0)
+        end_x = x
+        keypoints = ((start_y, end_y), (start_x, end_x))
+        return (DataAugmentationPicture.crop_picture(x_or_probability, keypoints), {'keypoints': keypoints})
+
+    @execute_based_on_probability
     def subtract_local_mean(self, x_or_probability):
         """Subtract local mean
 
@@ -1004,7 +1061,7 @@ class DataAugmentationPicture(object):
         return (x_or_probability - mean, {'mean': mean})
 
     @execute_based_on_probability
-    def normalize_picture(self, x_or_probability, value=0.):
+    def normalize_picture(self, x_or_probability, value=0., each_rgb=False, dtype=np.float32):
         """Normalize the picture
 
         Edited date:
@@ -1037,10 +1094,19 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
-        var = np.var(x_or_probability)
-        std = np.sqrt(var + value)
-        mean = preprocess.calculate_local_average(x_or_probability)
-        return ((x_or_probability - mean) / std, {'mean': mean, 'var': var, 'std': std})
+        x_or_probability = x_or_probability.astype(dtype)
+        if each_rgb:
+            var = np.var(x_or_probability, axis=(0, 1))
+            std = np.sqrt(var + value)
+            mean = np.mean(x_or_probability, axis=(0, 1))
+            for i in six.moves.range(x_or_probability.shape[2]):
+                x_or_probability[:, :, i] = (x_or_probability[:, :, i] - mean[i]) / std[i]
+            return (x_or_probability, {'mean': mean, 'var': var, 'std': std})
+        else:
+            var = np.var(x_or_probability)
+            std = np.sqrt(var + value)
+            mean = preprocess.calculate_local_average(x_or_probability)
+            return ((x_or_probability - mean) / std, {'mean': mean, 'var': var, 'std': std})
 
     @execute_based_on_probability
     def shift_global_hsv_randomly(self, x_or_probability, hsv='h', low=(-31.992, -0.10546, -0.24140), high=(31.992, 0.10546, 0.24140), ceiling=True):
@@ -1148,6 +1214,7 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
+        np.random.seed()
         # index
         index = 'bsv'.index(bsv)
         # save dtype
@@ -1223,6 +1290,7 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
+        np.random.seed()
         height, width, channel = x_or_probability.shape
         indices = np.where(np.random.rand(height, width, channel) <= probability)
         answer = x_or_probability.copy()
@@ -1268,6 +1336,7 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
+        np.random.seed()
         floor, ceil = probability_range
         probability = np.random.rand() * (ceil - floor) + floor
         height, width, channel = x_or_probability.shape
@@ -1303,6 +1372,7 @@ class DataAugmentationPicture(object):
         Returns:
             Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
         """
+        np.random.seed()
         random_value = np.random.uniform(low, high)
         return (imrotate(x_or_probability, random_value, reshape=True), {'random_value': random_value})
 
@@ -1332,3 +1402,46 @@ class DataAugmentationPicture(object):
             for i in six.moves.range(3):
                 img[:, :, i] = x_or_probability.copy()
             return (img, {})
+
+    @execute_based_on_probability
+    def scale_to_one(self, x_or_probability, constant=255., dtype=np.float32):
+        x_or_probability = x_or_probability.astype(dtype)
+        return (x_or_probability / constant, {'constant': constant})
+
+    @execute_based_on_probability
+    def fixed_normalization(self, x_or_probability, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), each_rgb=True, dtype=np.float32):
+        """
+            If you scale picture beforehand by using DataAugmentationPicture.scale_to_one, you can use default values of mean and std.
+            URL: https://github.com/facebookresearch/ResNeXt/tree/master/datasets
+        """
+        x_or_probability = x_or_probability.astype(dtype)
+        if each_rgb:
+            for i in six.moves.range(len(mean)):
+                x_or_probability[:, :, i] = (x_or_probability[:, :, i] - mean[i]) / std[i]
+            return (x_or_probability, {'mean': mean, 'var': [s ** 2 for s in std], 'std': std})
+        else:
+            return ((x_or_probability - mean) / std, {'mean': mean, 'var': std ** 2, 'std': std})
+
+    @execute_based_on_probability
+    def fixed_color_normalization(self, x_or_probability, alphastd=0.1, eigval=(0.2175, 0.0188, 0.0045), eigvec=((-0.5675, 0.7192, 0.4009), (-0.5808, -0.0045, -0.8140), (-0.5836, -0.6948, 0.4203)), each_rgb=True, dtype=np.float32):
+        """
+            URL: https://github.com/facebookresearch/ResNeXt/tree/master/datasets
+        """
+        np.random.seed()
+        x_or_probability = x_or_probability.astype(dtype)
+        alpha = np.tile(np.random.normal(0, alphastd, (1, 3)), (3, 1))
+        eigval = np.tile(eigval, (3, 1))
+        eigvec = np.sum(np.multiply(eigvec, eigval) * alpha, axis=1)
+        for i in six.moves.range(len(eigval)):
+            x_or_probability[:, :, i] = x_or_probability[:, :, i] + eigvec[i]
+        return (x_or_probability, {'eigval': eigval[0], 'alpha': alpha[0]})
+
+    @execute_based_on_probability
+    def cutout(self, x_or_probability, sizes=(16, 16), dtype=np.float32):
+        x_or_probability = x_or_probability.astype(dtype)
+        y, x = x_or_probability.shape[0:2]
+        keypoints = DataAugmentationPicture.get_keypoints_randomly_for_cropping((y, x), sizes)
+        start_y, end_y = keypoints[0]
+        start_x, end_x = keypoints[1]
+        x_or_probability[start_y:end_y, start_x:end_x] = 0.0
+        return (x_or_probability, {'keypoints': keypoints, 'original_size': (y, x), 'dtype': dtype})
