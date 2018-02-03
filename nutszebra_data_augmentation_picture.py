@@ -842,8 +842,7 @@ class DataAugmentationPicture(object):
             scale = float(oneside_length) / x
             sizes = (int(scale * y), oneside_length)
         info = {'resized_size': sizes, 'original_size': (y, x), 'actual_interpolation': interpolation, 'scale': scale}
-        cv2_flag = x_or_probability.ndim == 2
-        return (preprocess.resize_image(x_or_probability, sizes, interpolation=interpolation, mode=mode, cv2_flag=cv2_flag), info)
+        return (preprocess.resize_image(x_or_probability, sizes, interpolation=interpolation, mode=mode), info)
 
     @execute_based_on_probability
     def crop_picture_randomly(self, x_or_probability, sizes=(224, 224)):

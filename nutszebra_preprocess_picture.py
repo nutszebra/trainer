@@ -4,7 +4,6 @@ import numpy as np
 import six
 import cv2
 import nutszebra_preprocess
-from scipy.misc import imresize
 from PIL import Image
 
 
@@ -206,7 +205,7 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         return answer
 
     @staticmethod
-    def resize_image(image, sizes=(224, 224), interpolation="bilinear", mode='RGB', cv2_flag=False):
+    def resize_image(image, sizes=(224, 224), interpolation="bilinear", mode='RGB'):
         """Resize image
 
         Note:
@@ -243,9 +242,7 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
             list: resized image
         """
 
-        if cv2_flag is True:
-            return cv2.resize(image, sizes[::-1], interpolation=PreprocessPicture.interpolation_to_num(interpolation))
-        return imresize(image, sizes, interp=interpolation, mode=mode)
+        return cv2.resize(image, sizes[::-1], interpolation=PreprocessPicture.interpolation_to_num(interpolation))
 
     @staticmethod
     def intersection_over_union(kp1, kp2):
@@ -283,11 +280,6 @@ class PreprocessPicture(nutszebra_preprocess.Preprocess):
         overlapped_area = (np.max([0.0, x_end - x_start])) * (np.max([0.0, y_end - y_start]))
         iou = overlapped_area / (kp1_area + kp2_area - overlapped_area)
         return iou
-
-    @staticmethod
-    def selective_search(img, scale=500, sigma=0.9, min_size=10):
-        img_lbl, regions = selective_search(img, scale=500, sigma=0.9, min_size=10)
-        return img_lbl, regions
 
     @staticmethod
     def cv2_interpolation(num):
