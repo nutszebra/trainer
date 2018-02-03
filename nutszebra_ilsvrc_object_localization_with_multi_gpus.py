@@ -85,7 +85,6 @@ class _Worker(multiprocessing.Process):
                     args = list(zip(x, t, args_da))
                     processed = p.starmap(process_train, args)
                     tmp_x, tmp_t = list(zip(*processed))
-                    train = True
                     x = self.model.prepare_input(tmp_x, dtype=np.float32, gpu=self.device)
                     t = self.model.prepare_input(tmp_t, dtype=np.int32, gpu=self.device)
                     y = self.model(x)
@@ -368,7 +367,7 @@ class TrainIlsvrcObjectLocalizationClassificationWithMultiGpus(object):
     def update_core(self, x, t, p, args_da):
         self._send_message(('update', None))
         with cuda.Device(self.gpus[0]):
-            with chainer.using_config('train', False):
+            with chainer.using_config('train', True):
                 self.model.cleargrads()
                 args = list(zip(x, t, args_da))
                 processed = p.starmap(process_train, args)
