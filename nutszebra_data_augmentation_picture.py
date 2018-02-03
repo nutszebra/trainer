@@ -5,7 +5,7 @@ import itertools
 import numpy as np
 from functools import wraps
 # from sklearn.decomposition import PCA
-from scipy.ndimage.interpolation import rotate as imrotate
+# from scipy.ndimage.interpolation import rotate as imrotate
 from nutszebra_sampling import Sampling as sampling
 from nutszebra_preprocess_picture import PreprocessPicture as preprocess
 from nutszebra_basic_dictionary import NutszebraDictionary as dict_n
@@ -1343,37 +1343,37 @@ class DataAugmentationPicture(object):
         answer = x_or_probability.copy()
         answer[indices] = 0
         return (answer, {'howmany': len(indices[0]), 'actual_probability': probability})
-
-    @execute_based_on_probability
-    def rotate_picture_randomly(self, x_or_probability, low=-10.0, high=10.0, reshape=True):
-        """Rotate picture
-
-        Edited date:
-            160521
-
-        Test:
-            160712
-
-        Example:
-
-        ::
-
-            da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
-            da.load_picture(path).rotate_picture_randomly()
-
-        Args:
-            x_or_probability Optional([int, float, str, numpy.ndarray]): If int or float, this argument is considered as the probability and self.x is used for convert_to_image_format. If str or numpy.ndarray, set this argument as self.x and execute crop_center with self.x.
-            low (float): lower bound of random value (degree)
-            high (float): higher bound of random value (degree)
-            reshape (bool): If True, rorated picture is reshaped
-            __no_record (bool): the value of __no_record changes the value to be returned.
-
-        Returns:
-            Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
-        """
-        np.random.seed()
-        random_value = np.random.uniform(low, high)
-        return (imrotate(x_or_probability, random_value, reshape=True), {'random_value': random_value})
+    #
+    # @execute_based_on_probability
+    # def rotate_picture_randomly(self, x_or_probability, low=-10.0, high=10.0, reshape=True):
+    #     """Rotate picture
+    #
+    #     Edited date:
+    #         160521
+    #
+    #     Test:
+    #         160712
+    #
+    #     Example:
+    #
+    #     ::
+    #
+    #         da = nutszebra_data_augmentation_picture.DataAugmentationPicture()
+    #         da.load_picture(path).rotate_picture_randomly()
+    #
+    #     Args:
+    #         x_or_probability Optional([int, float, str, numpy.ndarray]): If int or float, this argument is considered as the probability and self.x is used for convert_to_image_format. If str or numpy.ndarray, set this argument as self.x and execute crop_center with self.x.
+    #         low (float): lower bound of random value (degree)
+    #         high (float): higher bound of random value (degree)
+    #         reshape (bool): If True, rorated picture is reshaped
+    #         __no_record (bool): the value of __no_record changes the value to be returned.
+    #
+    #     Returns:
+    #         Optional([tuple, class]): If __no_record is False, return self, otherwise return tuple(shaped x, info)
+    #     """
+    #     np.random.seed()
+    #     random_value = np.random.uniform(low, high)
+    #     return (imrotate(x_or_probability, random_value, reshape=True), {'random_value': random_value})
 
     @execute_based_on_probability
     def to_bgr(self, x_or_probability):
